@@ -2,8 +2,6 @@
 
 A client-side web application for securely encrypting, decrypting, and sharing files with end-to-end encryption. All cryptographic operations happen in your browser - no server involved.
 
-![Secure FileShare Logo](https://via.placeholder.com/150x150.png?text=Secure+FileShare)
-
 ## Features
 
 ### File Encryption & Decryption
@@ -117,4 +115,4 @@ Contributions are welcome! Feel free to submit a pull request or open an issue f
 
 ## Credits
 
-Created by [Your Name]
+Created by SukurBabaev
