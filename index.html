@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure FileShare</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Add PeerJS for WebRTC connections -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <!-- Updated Content-Security-Policy to allow PeerJS connections -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; connect-src 'self' https://unpkg.com https://*.peerjs.com wss://*.peerjs.com https://peerjs.cloudaccess4all.com:* wss://peerjs.cloudaccess4all.com:* https://*.l.google.com:*; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline';">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Secure FileShare</h1>
+            <div class="theme-toggle">
+                <input type="checkbox" id="theme-switch">
+                <label for="theme-switch" class="toggle-label">
+                    <span class="toggle-icon"></span>
+                </label>
+            </div>
+        </header>
+
+        <main>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="encrypt">Encrypt</button>
+                <button class="tab-btn" data-tab="decrypt">Decrypt</button>
+                <button class="tab-btn" data-tab="share">Share</button>
+            </div>
+
+            <div class="tab-content">
+                <div id="encrypt-tab" class="tab-pane active">
+                    <div class="file-upload-area" id="encrypt-upload-area">
+                        <div class="file-upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 12.586l4.243 4.242-1.415 1.415L13 16.415V22h-2v-5.587l-1.828 1.83-1.415-1.415L12 12.586zM12 2a7.001 7.001 0 0 1 6.954 6.194 5.5 5.5 0 0 1-.953 10.784v-2.014a3.5 3.5 0 1 0-1.112-6.91 5 5 0 1 0-9.777 0 3.5 3.5 0 0 0-1.292 6.88l.19.031v2.014a5.5 5.5 0 0 1-.954-10.784A7 7 0 0 1 12 2z"/></svg>
+                        </div>
+                        <div class="file-upload-text">
+                            <span>Drag & drop file here or</span>
+                            <label for="encrypt-file-input" class="file-upload-btn">Browse files</label>
+                            <input type="file" id="encrypt-file-input" hidden>
+                        </div>
+                    </div>
+                    <div class="file-info" id="encrypt-file-info" style="display: none;">
+                        <div class="file-details">
+                            <p>File: <span id="encrypt-file-name"></span></p>
+                            <p>Size: <span id="encrypt-file-size"></span></p>
+                        </div>
+                        <button class="clear-file-btn" id="encrypt-clear-btn">✕</button>
+                    </div>
+                    <div class="input-group">
+                        <label for="encrypt-password">Password</label>
+                        <input type="password" id="encrypt-password" placeholder="Enter a strong password">
+                    </div>
+                    <div class="input-group">
+                        <label for="encrypt-confirm-password">Confirm Password</label>
+                        <input type="password" id="encrypt-confirm-password" placeholder="Confirm your password">
+                    </div>
+                    <button id="encrypt-btn" class="action-btn" disabled>Encrypt & Download</button>
+                    <div class="progress-container" id="encrypt-progress-container" style="display: none;">
+                        <div class="progress-bar" id="encrypt-progress-bar"></div>
+                    </div>
+                </div>
+
+                <div id="decrypt-tab" class="tab-pane">
+                    <div class="file-upload-area" id="decrypt-upload-area">
+                        <div class="file-upload-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 12.586l4.243 4.242-1.415 1.415L13 16.415V22h-2v-5.587l-1.828 1.83-1.415-1.415L12 12.586zM12 2a7.001 7.001 0 0 1 6.954 6.194 5.5 5.5 0 0 1-.953 10.784v-2.014a3.5 3.5 0 1 0-1.112-6.91 5 5 0 1 0-9.777 0 3.5 3.5 0 0 0-1.292 6.88l.19.031v2.014a5.5 5.5 0 0 1-.954-10.784A7 7 0 0 1 12 2z"/></svg>
+                        </div>
+                        <div class="file-upload-text">
+                            <span>Drag & drop encrypted file here or</span>
+                            <label for="decrypt-file-input" class="file-upload-btn">Browse files</label>
+                            <input type="file" id="decrypt-file-input" hidden>
+                        </div>
+                    </div>
+                    <div class="file-info" id="decrypt-file-info" style="display: none;">
+                        <div class="file-details">
+                            <p>File: <span id="decrypt-file-name"></span></p>
+                            <p>Size: <span id="decrypt-file-size"></span></p>
+                        </div>
+                        <button class="clear-file-btn" id="decrypt-clear-btn">✕</button>
+                    </div>
+                    <div class="input-group">
+                        <label for="decrypt-password">Password</label>
+                        <input type="password" id="decrypt-password" placeholder="Enter the password to decrypt">
+                    </div>
+                    <button id="decrypt-btn" class="action-btn" disabled>Decrypt & Download</button>
+                    <div class="progress-container" id="decrypt-progress-container" style="display: none;">
+                        <div class="progress-bar" id="decrypt-progress-bar"></div>
+                    </div>
+                </div>
+
+                <div id="share-tab" class="tab-pane">
+                    <div class="share-container">
+                        <div class="card">
+                            <h3>Share Files</h3>
+                            <p>Share encrypted files with devices on your network</p>
+                            
+                            <div class="input-group">
+                                <label for="custom-peer-id">Create Custom Share ID (Optional)</label>
+                                <div class="peer-id-container">
+                                    <input type="text" id="custom-peer-id" placeholder="Enter a custom ID or leave empty for random">
+                                    <button id="create-custom-id-btn" class="icon-btn" title="Create with Custom ID">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="peer-id">Your Share ID</label>
+                                <div class="peer-id-container">
+                                    <input type="text" id="peer-id" readonly>
+                                    <button id="copy-id-btn" class="icon-btn" title="Copy ID">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="input-group">
+                                <label for="connect-peer-id">Connect to Share ID</label>
+                                <div class="peer-id-container">
+                                    <input type="text" id="connect-peer-id" placeholder="Enter Share ID">
+                                    <button id="connect-btn" class="icon-btn" title="Connect">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3>Available Files</h3>
+                            <div id="files-list" class="files-list">
+                                <p id="no-files-message">No shared files available</p>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3>Share Your Files</h3>
+                            <div class="file-upload-area" id="share-upload-area">
+                                <div class="file-upload-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="48" height="48"><path fill="none" d="M0 0h24v24H0z"/><path d="M12 12.586l4.243 4.242-1.415 1.415L13 16.415V22h-2v-5.587l-1.828 1.83-1.415-1.415L12 12.586zM12 2a7.001 7.001 0 0 1 6.954 6.194 5.5 5.5 0 0 1-.953 10.784v-2.014a3.5 3.5 0 1 0-1.112-6.91 5 5 0 1 0-9.777 0 3.5 3.5 0 0 0-1.292 6.88l.19.031v2.014a5.5 5.5 0 0 1-.954-10.784A7 7 0 0 1 12 2z"/></svg>
+                                </div>
+                                <div class="file-upload-text">
+                                    <span>Drag & drop file here or</span>
+                                    <label for="share-file-input" class="file-upload-btn">Browse files</label>
+                                    <input type="file" id="share-file-input" multiple hidden>
+                                </div>
+                            </div>
+                            <div id="shared-files-list" class="shared-files-list">
+                                <p id="no-shared-files-message">No files selected for sharing</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div id="status-message"></div>
+            <div id="connection-status">Not connected</div>
+            <p>© 2025 Secure FileShare - All encryption/decryption happens in your browser</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
